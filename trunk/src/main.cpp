@@ -11,13 +11,28 @@ double fill_func_debug(const int i, const int j)
 	double B = (fabs(j - 3.0) - 1.3);
 	double C =  pow(2.0, j);
 	double D =  (i - 3.4);
-	double E =  (j / 3.0 - 1.0);
+	double E =  (j / (3.0 - 1.0));
 	double res = A * B * C * D * E;
 	cout<<"fill_func("<<i<<", "<<j<<") = "<<A<<"*"<<B<<"*"<<C<<"*"<<D<<"*"<<E<<" = "<<res<<endl;
 	return res;
 }
 
-double fill_func(const int i, const int j)
+const char* fill_func_ver1_desc()
+{
+	return "a[i,j] = (2^(j-1)) * (|j - 3| - 1.3) * (2^j) * (i - 3.4) * (j / (3 - 1))";
+}
+
+double fill_func_ver1(const int i, const int j)
+{
+	return pow(2.0, j - 1.0) * (fabs(j - 3.0) - 1.3) * pow(2.0, j) * (i - 3.4) * (j / (3.0 - 1.0));
+}
+
+const char* fill_func_ver2_desc()
+{
+	return "a[i,j] = (2^(j-1)) * (|j - 3| - 1.3) * (2^j) * (i - 3.4) * (j / 3 - 1)";
+}
+
+double fill_func_ver2(const int i, const int j)
 {
 	return pow(2.0, j - 1.0) * (fabs(j - 3.0) - 1.3) * pow(2.0, j) * (i - 3.4) * (j / 3.0 - 1.0);
 }
@@ -71,7 +86,7 @@ void transform_mattrix(double mattr_array[], const int size)
 	}
 }
 
-void partial_sort_column(double mattr_array[], const int size, const int col_num)
+void partial_sort_column_in_matrix(double mattr_array[], const int size, const int col_num)
 {
 	for (int i=0; i<(size-1); ++i)
 	{
@@ -88,7 +103,32 @@ void partial_sort_column(double mattr_array[], const int size, const int col_num
 	}
 }
 
-int find_vector_X(const double mattr_array[], const int size, const int col_num, double vector_x[])
+void partial_sort_column(double col[], const int size)
+{
+	for (int i=0; i<(size-1); ++i)
+	{
+		for (int k=0; k<(size-1-i); ++k)
+		{
+			double a = col[k];
+			double b = col[k+1];
+			if ( a < 0 && b >=0)
+			{
+				col[k] = b;
+				col[k+1] = a;
+			}
+		}
+	}
+}
+
+void separate_column(double mattr_array[], const int size, const int col_num, double separated_col[])
+{
+	for (int i=0; i<size; ++i)
+	{
+		separated_col[i] = mattr_array[i*size + col_num];
+	}
+}
+
+void find_vector_X_in_matrix(const double mattr_array[], const int size, const int col_num, double vector_x[])
 {
 	int counter = 0;
 	for (int i=0; i<size; ++i)
@@ -100,7 +140,20 @@ int find_vector_X(const double mattr_array[], const int size, const int col_num,
 		}
 		vector_x[counter++] = res;
 	}
-	return counter;
+}
+
+void find_vector_X_using_col(const double mattr_array[], const int size, const double separated_col[], double vector_x[])
+{
+	int counter = 0;
+	for (int i=0; i<size; ++i)
+	{
+		double res = 0;
+		for (int k=0; k<size; ++k)
+		{
+			res += (separated_col[k] * mattr_array[i * size + k]);
+		}
+		vector_x[counter++] = res;
+	}
 }
 
 double calculate_sum(const double vector[], const int size)
@@ -121,17 +174,20 @@ bool validate_dimension(const int size)
 int main()
 {
 	int A_size = 0;
-	int column = 0;
+	int sepcol_num = 0;
 	double *A;
 	double *X;
+	double *sepcol;
 	double U = 0;
-	char answer[128];
+	char answer[10];
 	bool cont = false;
+	bool save_the_matix = false;
+	int func_version = 0;
 
 	do
 	{
 		cout<<"------------------------------------------------------------------------------------------------------"<<endl;
-		cout<<"Enter dimention of the matrix 'A' (NxM > N=M > NxN), between 2 and 50):";
+		cout<<"Enter dimention of the matrix 'A' (NxM > N=M > NxN), between 2 and 50: ";
 		cin>>A_size;
 
 		if(validate_dimension(A_size)) 
@@ -140,21 +196,53 @@ int main()
 			A = new double[A_size*A_size];
 			X = new double[A_size];
 
-			cout<<"Filling matrix("<<A_size<<"x"<<A_size<<")"<<endl;
-			fill_mattrix(A, A_size, fill_func);
+			do
+			{
+				cout<<endl<<"Chosse fill function:"<<endl;
+				cout<<"option 1: "<<fill_func_ver1_desc()<<endl;					
+				cout<<"option 2: "<<fill_func_ver2_desc()<<endl;
+				cout<<">:";
+				cin>>func_version;
+			} 
+			while((func_version != 1)&&(func_version != 2));
+
+			cout<<endl<<"Filling matrix("<<A_size<<"x"<<A_size<<") by using function "<<((func_version==1)?(fill_func_ver1_desc()):(fill_func_ver2_desc()))<<endl;
+			fill_mattrix(A, A_size, (func_version==1)?(fill_func_ver1):(fill_func_ver2));
 			cout<<"Matrix 'A':"<<endl;
 			print_mattrix(A, A_size);
 
-			cout<<endl<<"Transforming "<<column+1<<" column"<<endl;
-			partial_sort_column(A, A_size, column);
-			cout<<"Matrix '`A':"<<endl;
-			print_mattrix(A, A_size);
+			cout<<endl<<"Do you want to transform the column 1 independent of the matrix?: ";
+			cin.width(10);
+			cin>>answer;
+			save_the_matix = (stricmp(answer,"yes") == 0);
+			if(save_the_matix)
+			{
+				sepcol = new double [A_size];
+				separate_column(A, A_size, sepcol_num, sepcol);
+				
+				cout<<endl<<"Transforming "<<sepcol_num+1<<" column"<<endl;
+				partial_sort_column(sepcol, A_size);
+				cout<<"Column "<<sepcol_num+1<<" sorted:"<<endl;
+				print_mattrix(sepcol, A_size, 1);
 
+				cout<<endl<<"Calculating X vector (multiplying all rows on "<<sepcol_num+1<<" column)"<<endl;
+				find_vector_X_using_col(A,A_size,sepcol,X);
+				cout<<"Vector 'X':"<<endl;
+				print_mattrix(X, A_size, 1, A_size*2);
 
-			cout<<endl<<"Calculating X vector (multiplying all rows on "<<column+1<<" column)"<<endl;
-			find_vector_X(A,A_size,column,X);
-			cout<<"Vector 'X':"<<endl;
-			print_mattrix(X, A_size, 1, A_size*2);
+			}
+			else
+			{
+				cout<<endl<<"Transforming "<<sepcol_num+1<<" column"<<endl;
+				partial_sort_column_in_matrix(A, A_size, sepcol_num);
+				cout<<"Matrix '`A':"<<endl;
+				print_mattrix(A, A_size);
+
+				cout<<endl<<"Calculating X vector (multiplying all rows on "<<sepcol_num+1<<" column)"<<endl;
+				find_vector_X_in_matrix(A,A_size,sepcol_num,X);
+				cout<<"Vector 'X':"<<endl;
+				print_mattrix(X, A_size, 1, A_size*2);
+			}
 
 			cout<<endl<<"Calculating sum"<<endl;
 			U = calculate_sum(X, A_size);
@@ -162,10 +250,17 @@ int main()
 			cout.precision(4);
 			cout<<"Sum 'U':"<<U<<endl;
 
+
+			cout<<endl<<"Cleanup."<<endl;
 			delete[] A;
 			delete[] X;
+			if(save_the_matix)
+			{
+				delete[] sepcol;
+			}
 		}
-		cout<<"Would uyou like to try again? (print 'yes' for another try):";
+		cout<<"Would uyou like to try again? (print 'yes' for another try): ";
+		cin.width(10);
 		cin>>answer;
 
 		cont = (stricmp(answer,"yes") == 0);
