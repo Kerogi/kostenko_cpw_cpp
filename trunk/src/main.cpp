@@ -308,14 +308,14 @@ int main()
 	do
 	{
 		// Спрашиваем пользователя какой размерности будет матрица
-		cout<<"------------------------------------------------------------------------------------------------------"<<endl;
+		cout<<endl<<"------------------------------------------------------------------------------------------------------"<<endl;
 		cout<<"Enter a dimension of the matrix 'A' (NxM > N=M > NxN), between 2 and 50: ";
 		cin>>A_size;
 
 		if(validate_dimension(A_size))// проверяем значение введенное пользователем 
 		{
 			// Выделения необходимой памяти для матрицы и вектора X
-			cout<<"Allocating necessary memory..."<<endl;
+			cout<<endl<<"Allocating necessary memory..."<<endl;
 			A = new double[A_size*A_size];
 			X = new double[A_size];
 
@@ -335,7 +335,7 @@ int main()
 			fill_mattrix(A, A_size, (func_version==1)?(fill_func_ver1):(fill_func_ver2));
 			
 			// Выводим матрицу на консоль
-			cout<<"Matrix 'A':"<<endl;
+			cout<<"Matrix A:"<<endl;
 			print_square_mattrix(A, A_size);
 
 			// Спрашиваем пользователя желает ли он сохранить матрицу, скопировав первый столбец в отдельный вектор
@@ -344,63 +344,68 @@ int main()
 			cin.width(10);
 			cin>>answer;
 			save_the_matix = (stricmp(answer,"yes") == 0); // проверяем ответ 
-
+			cout<<endl;
+				
 			if(save_the_matix)// если пользователь хочет сохранить матрицу
 			{
 				// Выделяем память для нового вектора
 				copied_column = new double [A_size];
 
 				// Копируем столбец в вектор
-				cout<<endl<<"Copying the "<<copied_column_index+1<<" column of matrix 'A' in to a vector"<<endl<<endl;
+				cout<<"Copying the "<<copied_column_index+1<<" column of matrix 'A' in to a vector"<<endl<<endl;
 				copy_column_in_vector(A, A_size, copied_column_index, copied_column);
 				
 				// Частично сортируем вектор
-				cout<<endl<<"Partially sorting "<<copied_column_index+1<<" the vector"<<endl<<endl;
+				cout<<"Partially sorting the vector"<<endl<<endl;
 				partial_sort_vector(copied_column, A_size);
 				
 				// Выводим частично отсортированный вектор на консоль
-				cout<<"Vectorno"<<endl;
+				cout<<"Vector after sorting"<<endl;
 				print_mattrix(copied_column, A_size, 1);
-				
+				cout<<endl;
+
 				// Вычисляем значение вектора X, используя оригинальную матрицу и ранее скопированный в отдельный вектор, а затем частично отсортированный, первый столбец матрицы
-				cout<<endl<<"Calculating X vector (multiplying all rows of the matrix 'A' on a partially sorted vector)"<<endl<<endl;
+				cout<<"Calculating X vector (multiplying all rows of the matrix 'A' on a partially sorted vector)"<<endl<<endl;
 				find_vector_X_using_matrix_and_vector(A,A_size,copied_column,X);
 				
 				// Выводим вектор X на консоль
-				cout<<"Vector 'X':"<<endl;
+				cout<<"Vector X:"<<endl;
 				print_mattrix(X, A_size, 1, A_size*2);
+				cout<<endl;
 
 			}
 			else// если пользователь не желает сохранять первоначальный вид матрицы, и хочет произвести частичную сортировку прямо в матрице
 			{
 				// Частично сортируем первый столбец матрицы
-				cout<<endl<<"Partially sorting the "<<copied_column_index+1<<" column of the matrix 'A'"<<endl<<endl;
+				cout<<"Partially sorting the "<<copied_column_index+1<<" column of the matrix 'A'"<<endl<<endl;
 				partial_sort_column_in_square_matrix(A, A_size, copied_column_index);
 
 				// Выводим матрицу с частично отсортированным первым столбцом на консоль
-				cout<<"Matrix '`A' with the partially sorted "<<copied_column_index+1<<" column"<<endl;
+				cout<<"Matrix A with the partially sorted "<<copied_column_index+1<<" column"<<endl;
 				print_square_mattrix(A, A_size);
+				cout<<endl;
 
 				// Вычисляем значение вектора X, используя матрицы с частично отсортированным первым столбцом
-				cout<<endl<<"Calculating X vector (multiplying all rows of matrix 'A' on the "<<copied_column_index+1<<" partial sorted column)"<<endl<<endl;
+				cout<<"Calculating X vector (multiplying all rows of matrix 'A' on the "<<copied_column_index+1<<" partial sorted column)"<<endl<<endl;
 				find_vector_X_using_matrix(A,A_size,copied_column_index,X);
 
 				// Выводим вектор X на консоль
-				cout<<"Vector 'X':"<<endl;
+				cout<<"Vector X:"<<endl;
 				print_mattrix(X, A_size, 1, A_size*2);
+				cout<<endl;
 			}
 			
 			// Вычисление значения суммы вектора 
-			cout<<endl<<"Calculating sum"<<endl<<endl;
+			cout<<"Calculating sum"<<endl<<endl;
 			U = calculate_sum(X, A_size);
 
 			// Вывод  суммы на консоль
 			cout.setf(ios::fixed,ios::floatfield);
 			cout.precision(4);
-			cout<<"Sum 'U':"<<U<<endl;
+			cout<<"Sum U = "<<U<<endl<<endl;
 
 			// Очистка ранее выделенных ресурсов 
-			cout<<endl<<"Cleaning-up."<<endl<<endl;
+			cout<<"Cleaning-up."<<endl<<endl;
 			delete[] A;
 			delete[] X;
 			if(save_the_matix)//2
